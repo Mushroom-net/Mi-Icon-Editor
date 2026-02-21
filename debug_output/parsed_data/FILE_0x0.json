@@ -1,0 +1,12 @@
+{
+  "layer": "FILE",
+  "offset": 0,
+  "size": 0,
+  "description": "FILE: \u539f\u59cb\u955c\u50cf\u6587\u4ef6",
+  "raw_data": "b''",
+  "parsed_data": {},
+  "extracted_files": [
+    "full_image.bin",
+    "first_1k.bin"
+  ]
+}

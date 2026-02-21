@@ -1,0 +1,155 @@
+
+============================================================
+[FILE] 原始镜像文件 (偏移: 0x0)
+============================================================
+文件大小: 0x3000000 字节 (50331648 字节)
+  [DEBUG] 保存数据到: debug_output\raw_data\full_image.bin (50331648 字节)
+  [DEBUG] 描述: 完整原始镜像
+  [DEBUG] MD5: e7d51dd9, SHA256: e3d80146a7e252ea
+  [DEBUG] 保存数据到: debug_output\raw_data\first_1k.bin (1024 字节)
+  [DEBUG] 描述: 前1KB数据
+  [DEBUG] MD5: 52ea7853, SHA256: 3c081770f44cb2a9
+  [DEBUG] 保存解析数据到: debug_output\parsed_data\file_info.json
+  [DEBUG] 保存解析数据到: debug_output\parsed_data\FILE_0x0.json
+
+================================================================================
+开始解析UEFI镜像结构（标准EFI格式）...
+================================================================================
+
+============================================================
+[FV] EfiFirmwareFileSystem (偏移: 0x1000)
+============================================================
+[层级0] Firmware Volume: EfiFirmwareFileSystem
+偏移: 0x1000
+  [DEBUG] 保存数据到: debug_output\raw_data\fv_header_0x1000_raw.bin (56 字节)
+  [DEBUG] 描述: FV头原始数据
+  [DEBUG] MD5: a68e1a63, SHA256: f62e2b50b9eb14cd
+  [DEBUG] 保存数据到: debug_output\raw_data\fv_header_0x1000_full.bin (72 字节)
+  [DEBUG] 描述: 完整FV头数据 (长度: 0x48)
+  [DEBUG] MD5: 02465344, SHA256: cabed980f91991f9
+  [DEBUG] 保存解析数据到: debug_output\parsed_data\fv_header_0x1000_parsed.json
+FV头信息:
+  ZeroVector: 00000000000000000000000000000000
+  FileSystem GUID: 8C8CE578-8A3D-4F1C-9935-896185C32DD3
+  FvLength: 0x600000
+  Signature: _FVH
+  Attributes: 0x0003feff
+  HeaderLength: 0x48
+  Checksum: 0xe070
+  Revision: 0x2
+  [DEBUG] 保存数据到: debug_output\raw_data\fv_0x1000_full.bin (6291456 字节)
+  [DEBUG] 描述: 完整FV数据 (大小: 0x600000)
+  [DEBUG] MD5: 1e046768, SHA256: 58c291a3d9a7b7d9
+  [DEBUG] 保存数据到: debug_output\raw_data\fv_0x1000_body.bin (6291384 字节)
+  [DEBUG] 描述: FV体数据 (大小: 0x5fffb8)
+  [DEBUG] MD5: b406e857, SHA256: 271e79c27cb4f3c7
+
+============================================================
+[FFS] 文件_0 (偏移: 0x1048)
+============================================================
+  [DEBUG] 保存数据到: debug_output\raw_data\ffs_header_0x1048_raw.bin (24 字节)
+  [DEBUG] 描述: FFS文件头原始数据
+  [DEBUG] MD5: b7496aa3, SHA256: 437622f0471f5afc
+  [DEBUG] 保存解析数据到: debug_output\parsed_data\ffs_header_0x1048_parsed.json
+  [DEBUG] 保存数据到: debug_output\raw_data\ffs_file_0x1048_full.bin (204907 字节)
+  [DEBUG] 描述: 完整FFS文件 (大小: 0x3206b)
+  [DEBUG] MD5: 5b89e04a, SHA256: eda21aebe159de8c
+[层级1] FFS文件 #0
+偏移: 0x1048
+GUID: 072BE68A-6EC0-B209-9B83-276F017EBEAA
+大小: 0x3206b
+类型: 0xb
+属性: 0x0
+  [DEBUG] 保存数据到: debug_output\raw_data\section_header_0x1060_raw.bin (4 字节)
+  [DEBUG] 描述: Section头原始数据
+  [DEBUG] MD5: dc94acee, SHA256: 34d8022f6f530c10
+  [DEBUG] 保存数据到: debug_output\raw_data\section_guid_0x1060_header.bin (24 字节)
+  [DEBUG] 描述: GUID定义Section头
+  [DEBUG] MD5: fbb6133b, SHA256: 15fbd064ab3c9a69
+  [DEBUG] 保存解析数据到: debug_output\parsed_data\section_header_0x1060_parsed.json
+[层级2] Section #0
+偏移: 0x1060
+大小: 0x32053
+类型: 0x2
+  [DEBUG] 保存数据到: debug_output\raw_data\section_0x1060_full.bin (204883 字节)
+  [DEBUG] 描述: 完整Section数据
+  [DEBUG] MD5: 98f6383a, SHA256: 753bcd56cabcf203
+
+============================================================
+[GUID_SECTION] GUID定义Section (偏移: 0x1060)
+============================================================
+  [DEBUG] 保存数据到: debug_output\raw_data\section_header_0x1060_raw.bin (4 字节)
+  [DEBUG] 描述: Section头原始数据
+  [DEBUG] MD5: dc94acee, SHA256: 34d8022f6f530c10
+  [DEBUG] 保存数据到: debug_output\raw_data\section_guid_0x1060_header.bin (24 字节)
+  [DEBUG] 描述: GUID定义Section头
+  [DEBUG] MD5: fbb6133b, SHA256: 15fbd064ab3c9a69
+  [DEBUG] 保存解析数据到: debug_output\parsed_data\section_header_0x1060_parsed.json
+[层级3] GUID定义Section
+GUID: EE4E5898-3914-4259-9D6E-DC7BD79403CF
+数据偏移: 0x18
+属性: 0x01
+  [DEBUG] 保存数据到: debug_output\raw_data\guid_section_0x1060_data.bin (204859 字节)
+  [DEBUG] 描述: GUID Section数据 (大小: 0x3203b)
+  [DEBUG] MD5: f27512b5, SHA256: d882d7fb5dddf22a
+检测到LZMA自定义解压GUID
+LZMA解压成功，大小: 0x2a4008
+  [DEBUG] 保存数据到: debug_output\raw_data\guid_decompressed_0x1060.bin (2768904 字节)
+  [DEBUG] 描述: GUID Section解压数据
+  [DEBUG] MD5: 88c4d51d, SHA256: f70291a6c7ead264
+分析解压数据...
+解压数据不是FV结构
+  [DEBUG] 保存解析数据到: debug_output\parsed_data\GUID_SECTION_0x1060.json
+  [DEBUG] 保存解析数据到: debug_output\parsed_data\ffs_0x1048_complete.json
+文件对齐填充: 5 字节
+到达空闲区域，偏移: 0x330b8
+  [DEBUG] 保存数据到: debug_output\raw_data\fv_0x1000_free_space.bin (6086472 字节)
+  [DEBUG] 描述: 空闲空间 (大小: 0x5cdf48)
+  [DEBUG] MD5: 756f6e98, SHA256: 8dca3fa33f7fc206
+
+============================================================
+[LOGO_SEARCH] 搜索logo.img (偏移: 0x0)
+============================================================
+
+================================================================================
+搜索logo.img...
+================================================================================
+未找到logo.img!
+  [DEBUG] 保存解析数据到: debug_output\parsed_data\LOGO_SEARCH_0x0.json
+
+================================================================================
+保存完整的调试信息...
+================================================================================
+  [DEBUG] 保存解析数据到: debug_output\parsed_data\complete_structure.json
+  [DEBUG] 保存解析数据到: debug_output\parsed_data\debug_summary.json
+调试信息已保存到目录: debug_output
+日志文件: debug_output\logs\parser.log
+原始数据: debug_output\raw_data
+解析数据: debug_output\parsed_data
+提取数据: debug_output\extracted_data
+================================================================================
+开始重新打包镜像...
+================================================================================
+使用原始logo.img
+重新计算FV校验和...
+  FV 0x1000: 新校验和=0x961a
+  [DEBUG] 保存解析数据到: debug_output\parsed_data\checksum_updates.json
+镜像已重新打包到: imagefv_rebuilt.img
+文件大小: 0x3000000 字节
+================================================================================
+验证重新打包的镜像...
+================================================================================
+主FV校验和: 存储=0x961a, 计算=0xb0b0
+校验和无效
+  [DEBUG] 保存解析数据到: debug_output\parsed_data\verification_results.json
+验证完成!
+  [DEBUG] 保存解析数据到: debug_output\parsed_data\rebuild_info.json
+  [DEBUG] 保存数据到: debug_output\raw_data\rebuilt_image.bin (50331648 字节)
+  [DEBUG] 描述: 重新打包的镜像
+  [DEBUG] MD5: c6a088c1, SHA256: b15933aaaadcc150
+
+================================================================================
+解析完成!
+调试输出目录: debug_output
+重新打包的文件: imagefv_rebuilt.img
+================================================================================

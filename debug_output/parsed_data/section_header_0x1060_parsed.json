@@ -1,0 +1,10 @@
+{
+  "offset": 4192,
+  "section_size": 204883,
+  "section_type": 2,
+  "raw_header_hex": "53200302",
+  "guid": "EE4E5898-3914-4259-9D6E-DC7BD79403CF",
+  "data_offset": 24,
+  "attributes": 1,
+  "full_header_hex": "5320030298584eee143959429d6edc7bd79403cf18000100"
+}
