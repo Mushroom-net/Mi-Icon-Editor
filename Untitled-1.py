@@ -7,10 +7,6 @@ file_name = 'imagefv_b.img'
 fd = open(file_name, 'rb')
 fd.seek(0)
 
-def bytes2guid(data: bytes) -> str:
-    return '{:02X}{:02X}{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}'.format(
-        data[3], data[2], data[1], data[0], data[5], data[4], data[7], data[6], data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15])
-
 class ELF32_HEADER:
     def __init__(self, header:bytes):
         self.indet = header[0:0x10]
@@ -32,7 +28,13 @@ class ELF32_HEADER:
         return 0x34
     
     def get_type(self, byteorder:str):
-        dic = {0: '未知', 1: '可重定位文件', 2: '可执行文件', 3: '共享目标文件', 4: '核心转储文件'}
+        dic = {
+            0: '未知',
+            1: '可重定位文件',
+            2: '可执行文件',
+            3: '共享目标文件',
+            4: '核心转储文件'
+        }
         tmp = int.from_bytes(self.type, byteorder)
         return dic[tmp]
 
@@ -65,29 +67,35 @@ class PRGM_HEAD_TABLE_ELMT:
         return 0x20
     
     def get_permission(self, byteorder:str):
-        pass
         tmp = '{:0>32b}'.format(int.from_bytes(self.flags, byteorder))[-8:]
         flag_map = {'1': '可', '0': '不可'}
         result = flag_map[tmp[-1]] + '读' + flag_map[tmp[-2]] + '写' + flag_map[tmp[-3]] + '执行'
         return result
     
     def get_offset(self, byteorder:str):
-        pass
         return int.from_bytes(self.offset, byteorder)
     
     def get_size(self, byteorder:str):
-        pass
         return int.from_bytes(self.filesz, byteorder)
     
     def available(self, byteorder:str):
-        pass
         if self.get_type(byteorder) != ('空' or '未使用' or '未知'):
             return True
         return False
     
     def get_type(self, byteorder:str):
-        pass
-        dic = {0: '空', 1: '可加载', 2: '动态链接', 3: '连接器路径', 4: '辅助信息', 5: '未使用', 6: '程序头表索引', 7: '线程局部存储', int.from_bytes(b'\x64\x74\xE5\x51'): 'GNU扩展栈权限', int.from_bytes(b'\x64\x74\xE5\x52') : 'GNU扩展只读重定位'}
+        dic = {
+            0: '空',
+            1: '可加载',
+            2: '动态链接',
+            3: '连接器路径',
+            4: '辅助信息',
+            5: '未使用',
+            6: '程序头表索引',
+            7: '线程局部存储',
+            int.from_bytes(b'\x64\x74\xE5\x51'): 'GNU扩展栈权限',
+            int.from_bytes(b'\x64\x74\xE5\x52') : 'GNU扩展只读重定位'
+        }
         tmp = int.from_bytes(self.type, byteorder)
         try :
             return dic[tmp]
@@ -154,16 +162,34 @@ class EFI_FFS_FILE_HEADER:
         return False
         
     def get_type(self):
-        dic = {0x00: '空', 0x01: 'raw', 0x02: 'freeformat', 0x03: 'Security Core', 0x04: 'PEI Core', 0x05: 'DXE Core', 0x06: 'PEI Module', 0x07: 'DXE Drive', 0x08: 'Combine PEI DXE', 0x09: 'UEFI APP', 0x0a: 'Management Mode(MM) Driver', 0x0b: 'Firmware Volume Image', 0x0C: 'Combine MM DXE', 0x0D: 'MM Core', 0x0E: 'MM Standalone', 0x0F: 'MM Standalone Core', 0xF0: 'FV_FFS_PAD'}
+        dic = {
+            0x00: '空',
+            0x01: 'raw',
+            0x02: 'GUID 定义',
+            0x03: 'Security Core',
+            0x04: 'PEI Core',
+            0x05: 'DXE Core',
+            0x06: 'PEI Module',
+            0x07: 'DXE Drive',
+            0x08: 'Combine PEI DXE',
+            0x09: 'UEFI APP',
+            0x0a: 'Management Mode(MM) Driver',
+            0x0b: 'Firmware Volume Image',
+            0x0C: 'Combine MM DXE',
+            0x0D: 'MM Core',
+            0x0E: 'MM Standalone',
+            0x0F: 'MM Standalone Core',
+            0xF0: 'FV_FFS_PAD'
+        }
         try:
             return dic[self.Type]
         except:
             if 0xC0 <= self.Type <=0xDF:
-                return 'OEM Define'
+                return 'OEM 定义'
             if 0xE0 <= self.Type <= 0xEF:
-                return 'Debug Define'
+                return '调试定义'
             if 0xF1 <= self.Type <= 0xFF:
-                return 'FFS Internal Reserved'
+                return 'FFS 内部保留'
         
     def get_check_sum(self):
         pass
@@ -181,46 +207,120 @@ class EFI_FFS_FILE_HEADER:
             return int.from_bytes(self.Size, 'little') - 0x18
         return int.from_bytes(self.Size, 'little') - 0x14
 
-def parse_segment(fd: io.BufferedReader, eid: ELF_IDENTIFY, seg: PRGM_HEAD_TABLE_ELMT):
-        fd.seek(int.from_bytes(seg.offset, eid.format_str))
-        efi_fvh = EFI_FIRMWARE_VOLUME_HEADER(fd.read(0x38))
-        if efi_fvh.have_ext_head:
-            fd.seek(int.from_bytes(seg.offset, eid.format_str))
-            efi_fvh = EFI_FIRMWARE_VOLUME_HEADER(fd.read(0x4C))
-        fd.seek(int.from_bytes(seg.offset, eid.format_str))
-        print('\t当前位置: 0x{:X}'.format(fd.tell()))
-        file_volume = fd.read(int.from_bytes(seg.filesz, eid.format_str))
-        print('\t当前位置: 0x{:X}'.format(fd.tell()))
-        print('\t可用段信息:')
-        print('\t\t状态:', seg.get_permission(eid.format_str))
-        print('\t\t文件中起始地址: {:X}'.format(seg.get_offset(eid.format_str)))
-        print('\t\t长度: 0x{:X}'.format(seg.get_size(eid.format_str)))
-        print('\t\t段类型:', seg.get_type(eid.format_str))
-        print('\t\tGUID:', bytes2guid(efi_fvh.FileSystemGUID))
-        guid = uuid.UUID(bytes2guid(efi_fvh.FileSystemGUID))
-        print('\t\tGUID版本:', guid.version)
-        print('\t\tGUID变体:', guid.variant)
-        parse_ffs(efi_fvh, file_volume, seg)
+class EFI_SECTIONS:
+    
+    def __init__(self, data):
+        self.common_header = data[0:0x04]
+        self.parse_sections(data)
+    
+    def parse_sections(self, data):
+        match self.common_header[-1]:
+            case 0x00:
+                pass
+            case 0x01:
+                pass
+            case 0x02:
+                self.guid = data[0x04:0x14]
+                self.data_offset = data[0x14:0x16]
+                self.attributes = data[0x16:0x18]
+                dic = {
+                    0x98584EEE143959429d6EDC7BD79403CF: 'LZMA',
+                    0xBDE62AD45213FB4B909ACA72A6EAE889: 'LZMA-x86'
+                }
+                self.guid_define = dic[self.guid]
+                def get_guid(self):
+                    return bytes2guid(self.guid)
+                
+            case 0x03:
+                pass
+            case 0x10:
+                pass
+            case 0x11:
+                pass
+            case 0x12:
+                pass
+            case 0x13:
+                pass
+            case 0x14:
+                pass
+            case 0x15:
+                pass
+            case 0x16:
+                pass
+            case 0x17:
+                pass
+            case 0x18:
+                pass
+            case 0x19:
+                pass
+            case 0x1A:
+                pass
+            case 0x1B:
+                pass
+            case _:
+                pass
+    
+    def get_type(self):
+        dic = {
+            0x00: "EFI_SECTION_ALL",
+            0x01: "EFI_SECTION_COMPRESSION",
+            0x02: "EFI_SECTION_GUID_DEFINED",
+            0x03: "EFI_SECTION_DISPOSABLE",
+            0x10: "EFI_SECTION_PE32",
+            0x11: "EFI_SECTION_PIC",
+            0x12: "EFI_SECTION_TE",
+            0x13: "EFI_SECTION_DXE_DEPEX",
+            0x14: "EFI_SECTION_VERSION",
+            0x15: "EFI_SECTION_USER_INTERFACE",
+            0x16: "EFI_SECTION_COMPATIBILITY16",
+            0x17: "EFI_SECTION_FIRMWARE_VOLUME_IMAGE",
+            0x18: "EFI_SECTION_FREEFORM_SUBTYPE_GUID",
+            0x19: "EFI_SECTION_RAW",
+            0x1A: "EFI_SECTION_PEI_DEPEX",
+            0x1B: "EFI_SECTION_SMM_DEPEX"
+        }
+        return dic[self.common_header[-1]]
+    
+    def get_size(self):
+        return int.from_bytes(self.common_header[0:0x04], 'little')
+
+def bytes2guid(data: bytes) -> str:
+    return '{:02X}{:02X}{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}'.format(
+        data[3], data[2], data[1], data[0], data[5], data[4], data[7], data[6], data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15])
 
 def parse_ffs(efi_fvh: EFI_FIRMWARE_VOLUME_HEADER, file_volume: bytes, seg: PRGM_HEAD_TABLE_ELMT):
-    if efi_fvh.have_ext_head:
-        print(f'\t\t扩展头位于偏移量0x{efi_fvh.ExtendedHeaderOffset.hex().upper()}，将基于FV扩展头偏移量0x{efi_fvh.ExtendedHeaderOffset.hex().upper()}读取FFS文件头')
-    else:
-        print('\t\t此段不含扩展头，直接读取FFS文件头')
-        print('\t\tFFS文件头信息:')
-        ffs_head = EFI_FFS_FILE_HEADER(file_volume[int.from_bytes(efi_fvh.HeaderLength, eid.format_str):int.from_bytes(efi_fvh.HeaderLength, eid.format_str) + 0x18])
-        print('\t\t\t起始地址: 0x{:X}'.format(seg.get_offset(eid.format_str) + int.from_bytes(efi_fvh.HeaderLength, eid.format_str)))
-        print('\t\t\tFFS文件头校验', '通过' if ffs_head.verify_head() else '不通过', sep='')
-        if ffs_head.verify_head():
-            print('\t\t\tGUID:', bytes2guid(ffs_head.Name))
-            if ffs_head.is_large_file():
-                ffs_head = EFI_FFS_FILE_HEADER(file_volume[int.from_bytes(efi_fvh.HeaderLength, eid.format_str):int.from_bytes(efi_fvh.HeaderLength, eid.format_str) + 0x1F])
-            print('\t\t\t长度: 0x{:X}'.format(ffs_head.get_full_size()))
-            print('\t\t\t类型:', ffs_head.get_type())
-            fd.seek(seg.get_offset(eid.format_str) + int.from_bytes(efi_fvh.HeaderLength, eid.format_str))
+    print('\t\tFFS文件头信息:')
+    ffs_head = EFI_FFS_FILE_HEADER(file_volume[int.from_bytes(efi_fvh.HeaderLength, eid.format_str):int.from_bytes(efi_fvh.HeaderLength, eid.format_str) + 0x18])
+    print('\t\t\t起始地址: 0x{:X}'.format(seg.get_offset(eid.format_str) + int.from_bytes(efi_fvh.HeaderLength, eid.format_str)))
+    print('\t\t\tFFS文件头校验', '通过' if ffs_head.verify_head() else '不通过', sep='')
+    if ffs_head.verify_head():
+        print('\t\t\tGUID:', bytes2guid(ffs_head.Name))
+        if ffs_head.is_large_file():
+            ffs_head = EFI_FFS_FILE_HEADER(file_volume[int.from_bytes(efi_fvh.HeaderLength, eid.format_str):int.from_bytes(efi_fvh.HeaderLength, eid.format_str) + 0x1F])
+        print('\t\t\t长度: 0x{:X}'.format(ffs_head.get_full_size()))
+        print('\t\t\t类型:', ffs_head.get_type())
 
-header = fd.read(0x40)
-elf_header = ELF32_HEADER(header)
+def parse_segment(fd: io.BufferedReader, eid: ELF_IDENTIFY, seg: PRGM_HEAD_TABLE_ELMT):
+    fd.seek(int.from_bytes(seg.offset, eid.format_str))
+    efi_fvh = EFI_FIRMWARE_VOLUME_HEADER(fd.read(0x38))
+    if efi_fvh.have_ext_head:
+        fd.seek(int.from_bytes(seg.offset, eid.format_str))
+        efi_fvh = EFI_FIRMWARE_VOLUME_HEADER(fd.read(0x4C))
+    fd.seek(int.from_bytes(seg.offset, eid.format_str))
+    file_volume = fd.read(int.from_bytes(seg.filesz, eid.format_str))
+    print('\t可用段详细信息:')
+    print('\t\tGUID:', bytes2guid(efi_fvh.FileSystemGUID))
+    guid = uuid.UUID(bytes2guid(efi_fvh.FileSystemGUID))
+    print('\t\tGUID版本:', guid.version)
+    print('\t\tGUID变体:', guid.variant)
+    if efi_fvh.have_ext_head:
+        print(f'\t\t扩展头位于偏移量0x{efi_fvh.ExtendedHeaderOffset.hex().upper()}')
+        parse_ffs(efi_fvh.ExtendedHeader, file_volume[int.from_bytes(efi_fvh.ExtendedHeaderOffset, eid.format_str):], seg)
+    else:
+        print('\t\t此段不含扩展头')
+        parse_ffs(efi_fvh, file_volume, seg)
+
+elf_header = ELF32_HEADER(fd.read(0x40))
 eid = ELF_IDENTIFY(elf_header)
 
 print(f'{file_name} 魔数:', str(eid.magic))
