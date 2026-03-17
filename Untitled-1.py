@@ -1,6 +1,7 @@
-import uuid
+import io
 import lzma
 import uefi_firmware
+import uuid
 
 file_name = 'imagefv_b.img'
 fd = open(file_name, 'rb')
@@ -35,7 +36,7 @@ class ELF32_HEADER:
         tmp = int.from_bytes(self.type, byteorder)
         return dic[tmp]
 
-class IDENTIFY:
+class ELF_IDENTIFY:
     def __init__(self, data:ELF32_HEADER):
         self.magic = data.indet[0:4] # ELF magic
         self.type = data.indet[4:5] # 64bit/32bit
@@ -46,7 +47,7 @@ class IDENTIFY:
         self.type_str = '32bit' if int.from_bytes(self.type) == 1 else '64bit'
         self.format_str = 'little' if int.from_bytes(self.format) == 1 else 'big'
 
-class PRGM_HEAD_TABLE_ITEM:
+class PRGM_HEAD_TABLE_ELMT:
     
     len = 0x20
     
@@ -180,11 +181,49 @@ class EFI_FFS_FILE_HEADER:
             return int.from_bytes(self.Size, 'little') - 0x18
         return int.from_bytes(self.Size, 'little') - 0x14
 
+def parse_segment(fd: io.BufferedReader, eid: ELF_IDENTIFY, seg: PRGM_HEAD_TABLE_ELMT):
+        fd.seek(int.from_bytes(seg.offset, eid.format_str))
+        efi_fvh = EFI_FIRMWARE_VOLUME_HEADER(fd.read(0x38))
+        if efi_fvh.have_ext_head:
+            fd.seek(int.from_bytes(seg.offset, eid.format_str))
+            efi_fvh = EFI_FIRMWARE_VOLUME_HEADER(fd.read(0x4C))
+        fd.seek(int.from_bytes(seg.offset, eid.format_str))
+        print('\t当前位置: 0x{:X}'.format(fd.tell()))
+        file_volume = fd.read(int.from_bytes(seg.filesz, eid.format_str))
+        print('\t当前位置: 0x{:X}'.format(fd.tell()))
+        print('\t可用段信息:')
+        print('\t\t状态:', seg.get_permission(eid.format_str))
+        print('\t\t文件中起始地址: {:X}'.format(seg.get_offset(eid.format_str)))
+        print('\t\t长度: 0x{:X}'.format(seg.get_size(eid.format_str)))
+        print('\t\t段类型:', seg.get_type(eid.format_str))
+        print('\t\tGUID:', bytes2guid(efi_fvh.FileSystemGUID))
+        guid = uuid.UUID(bytes2guid(efi_fvh.FileSystemGUID))
+        print('\t\tGUID版本:', guid.version)
+        print('\t\tGUID变体:', guid.variant)
+        parse_ffs(efi_fvh, file_volume, seg)
+
+def parse_ffs(efi_fvh: EFI_FIRMWARE_VOLUME_HEADER, file_volume: bytes, seg: PRGM_HEAD_TABLE_ELMT):
+    if efi_fvh.have_ext_head:
+        print(f'\t\t扩展头位于偏移量0x{efi_fvh.ExtendedHeaderOffset.hex().upper()}，将基于FV扩展头偏移量0x{efi_fvh.ExtendedHeaderOffset.hex().upper()}读取FFS文件头')
+    else:
+        print('\t\t此段不含扩展头，直接读取FFS文件头')
+        print('\t\tFFS文件头信息:')
+        ffs_head = EFI_FFS_FILE_HEADER(file_volume[int.from_bytes(efi_fvh.HeaderLength, eid.format_str):int.from_bytes(efi_fvh.HeaderLength, eid.format_str) + 0x18])
+        print('\t\t\t起始地址: 0x{:X}'.format(seg.get_offset(eid.format_str) + int.from_bytes(efi_fvh.HeaderLength, eid.format_str)))
+        print('\t\t\tFFS文件头校验', '通过' if ffs_head.verify_head() else '不通过', sep='')
+        if ffs_head.verify_head():
+            print('\t\t\tGUID:', bytes2guid(ffs_head.Name))
+            if ffs_head.is_large_file():
+                ffs_head = EFI_FFS_FILE_HEADER(file_volume[int.from_bytes(efi_fvh.HeaderLength, eid.format_str):int.from_bytes(efi_fvh.HeaderLength, eid.format_str) + 0x1F])
+            print('\t\t\t长度: 0x{:X}'.format(ffs_head.get_full_size()))
+            print('\t\t\t类型:', ffs_head.get_type())
+            fd.seek(seg.get_offset(eid.format_str) + int.from_bytes(efi_fvh.HeaderLength, eid.format_str))
+
 header = fd.read(0x40)
 elf_header = ELF32_HEADER(header)
-eid = IDENTIFY(elf_header)
+eid = ELF_IDENTIFY(elf_header)
 
-print(f'{file_name} magic:', str(eid.magic))
+print(f'{file_name} 魔数:', str(eid.magic))
 print(f'{file_name} 格式:', eid.type_str)
 print(f'{file_name} 存储方式:', eid.format_str)
 print(f'{file_name} 版本:', int.from_bytes(eid.version))
@@ -209,71 +248,27 @@ else:
 if int.from_bytes(elf_header.prgm_head_elmt_num, eid.format_str) != 0:
     fd.seek(int.from_bytes(elf_header.prgm_head_offset, eid.format_str))
     print('开始读取程序头表数据...')
-    items:list[PRGM_HEAD_TABLE_ITEM] = []
-    rm = 0
     for i in range(int.from_bytes(elf_header.prgm_head_elmt_num, eid.format_str)):
         pht_elmt_data = fd.read(int.from_bytes(elf_header.prgm_head_elmt_size, eid.format_str))
-        items.append(PRGM_HEAD_TABLE_ITEM(pht_elmt_data))
+        crnt_pos = fd.tell()
+        elmt = PRGM_HEAD_TABLE_ELMT(pht_elmt_data)
         print(f'段{i}信息:')
-        print('\t状态:', items[i - rm].get_permission(eid.format_str))
-        print('\t文件中起始地址: {:X}'.format(items[i - rm].get_offset(eid.format_str)))
-        print('\t长度: {:X}'.format(items[i - rm].get_size(eid.format_str)))
-        print('\t段类型:', items[i - rm].get_type(eid.format_str))
-        if not items[i - rm].available(eid.format_str):
-            items.pop(-1)
-            rm += 1
-    if items:
-        print(f'发现{i + 1 - rm}个可用段！')
-        print('开始读取有效段数据...')
-        for i in range(len(items)):
-            fd.seek(int.from_bytes(items[i].offset, eid.format_str))
-            efi_fvh = EFI_FIRMWARE_VOLUME_HEADER(fd.read(0x38))
-            if efi_fvh.have_ext_head:
-                fd.seek(int.from_bytes(items[i].offset, eid.format_str))
-                efi_fvh = EFI_FIRMWARE_VOLUME_HEADER(fd.read(0x4C))
-            fd.seek(int.from_bytes(items[i].offset, eid.format_str))
-            file_volume = fd.read(int.from_bytes(items[i].filesz, eid.format_str) + 0x4C)
-            print('当前位置: 0x{:X}'.format(fd.tell()))
-            bin_file = open(f'Section{i + 1}.bin', 'wb')
-            bin_file.write(file_volume)
-            bin_file.close()
-            print(f'可用段{i}信息:')
-            print('\t状态:', items[i].get_permission(eid.format_str))
-            print('\t文件中起始地址: {:X}'.format(items[i].get_offset(eid.format_str)))
-            print('\t长度:', items[i].get_size(eid.format_str))
-            print('\t段类型:', items[i].get_type(eid.format_str))
-            print('\tGUID:', bytes2guid(efi_fvh.FileSystemGUID))
-            guid = uuid.UUID(bytes2guid(efi_fvh.FileSystemGUID))
-            print('\tGUID版本:', guid.version)
-            print('\tGUID变体:', guid.variant)
-            if efi_fvh.have_ext_head:
-                print(f'\t扩展头位于偏移量0x{efi_fvh.ExtendedHeaderOffset.hex().upper()}，将基于FV扩展头偏移量0x{efi_fvh.ExtendedHeaderOffset.hex().upper()}读取FFS文件头')
-            else:
-                print('\t此段不含扩展头，直接读取FFS文件头')
-                print('FFS文件头信息:')
-                ffs_head = EFI_FFS_FILE_HEADER(file_volume[int.from_bytes(efi_fvh.HeaderLength, eid.format_str):int.from_bytes(efi_fvh.HeaderLength, eid.format_str) + 0x18])
-                print('\t起始地址: 0x{:X}'.format(items[i].get_offset(eid.format_str) + int.from_bytes(efi_fvh.HeaderLength, eid.format_str)))
-                print('\t文件头校验', '通过' if ffs_head.verify_head() else '不通过', sep='')
-                if ffs_head.verify_head():
-                    print('\tGUID:', bytes2guid(ffs_head.Name))
-                    if ffs_head.is_large_file():
-                        ffs_head = EFI_FFS_FILE_HEADER(file_volume[int.from_bytes(efi_fvh.HeaderLength, eid.format_str):int.from_bytes(efi_fvh.HeaderLength, eid.format_str) + 0x1F])
-                    print('\t长度: 0x{:X}'.format(ffs_head.get_full_size()))
-                    print('\t类型:', ffs_head.get_type())
-                    fd.seek(items[i].get_offset(eid.format_str) + int.from_bytes(efi_fvh.HeaderLength, eid.format_str))
-                    ffs = fd.read(ffs_head.get_full_size())
-                    bin_file = open(f'File{i + 1}.bin', 'wb')
-                    bin_file.write(ffs)
-                    bin_file.close()
-
-                    '''
-                    parser = uefi_firmware.AutoParser(ffs)
-                    print('文件类型:', parser.type())
-                    if parser.type() != 'unknown':
-                        firmware = parser.parse()
-                        #firmware.data
-                        firmware.showinfo()
-                    '''
-
+        print('\t状态:', elmt.get_permission(eid.format_str))
+        print('\t文件中起始地址: 0x{:X}'.format(elmt.get_offset(eid.format_str)))
+        print('\t长度: 0x{:X}'.format(elmt.get_size(eid.format_str)))
+        print('\t段类型:', elmt.get_type(eid.format_str))
+        if elmt.available(eid.format_str):
+            print('\t开始解析可用段数据')
+            parse_segment(fd, eid, elmt)
+        fd.seek(crnt_pos)
+        
+    '''
+    parser = uefi_firmware.AutoParser(ffs)
+    print('文件类型:', parser.type())
+    if parser.type() != 'unknown':
+        firmware = parser.parse()
+        #firmware.data
+        firmware.showinfo()
+    '''
 
 fd.close()

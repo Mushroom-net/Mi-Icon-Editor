@@ -1,1 +1,191 @@
-{"name":"UEFI image", "type":"image", "context":[{"name":"padding", "type":"padding"}, {"name":"EfiFirmwareFileSyatem", "type":"Volume", "Fixed": "No", "Base": "0x1000", "Offset": "0x1000", "ZeroVector":"00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", "Signature": "_FVH", "FileSystem GUID": "8C8CE578-8A3D-4F1C-9935-896185C32DD3", "Full size": ["0x600000", 6291456], "Header size": ["0x48", 72], "Body size": ["0x5FFFB8", 6291384], "Revision": 2, "Attributes": "0x0003FEFF", "Erase polarity": 1, "Checksum": ["0xE070", "valid"], "NumBlocks": ["0x600", 1536, "valid"], "Length": ["0x1000", 4096, "valid"], "context":{"name":"072BE68A-6EC0-B209-9B83-276F017EBEAA", "type":"File", "Fixed": "No","Base": "0x1048","Offset": "0x48","File GUID": "072BE68A-6EC0-B209-9B83-276F017EBEAA","Type": "0x0B","Attributes": "0x00","Full size": ["0x3206B", 204907],"Header size": ["0x18", 24],"Body size": ["0x32053", 204883],"Tail size": ["0x0", 0],"State": "0xF8","Header checksum": ["0x41", "valid"],"Data checksum": ["0xAA", "valid"], "context":{"name":"LzmaCustomDecompressGuid", "type":"Section", "Fixed": "No","Base": "0x1060","Offset": "0x18","Section GUID": "EE4E5898-3914-4259-9D6E-DC7BD79403CF","Type": "0x02","Full size": ["0x32053", 204883],"Header size": ["0x18", 24],"Body size": ["0x3203B", 204859],"Attributes": "0x0001","Compression algorithm": "LZMA","Decompressed size": ["0x2A4008", 2768904],"LZMA dictionary size": "0x1000000", "context":[{"name":"Raw section", "type":"Section"}, {"name":"Volume image section", "type":"Section", "Fixed": "No","Offset": "0x1C","Type": "0x17","Full size": ["0x2A4004", 2768900],"Header size": ["0x4", 4],"Body size": ["0x2A4000", 2768896], "context":{"name":"A8169396-D0F7-49CB-890A-25E1A9767406", "type":"Volume", "Fixed": "No","Offset": "4h","ZeroVector":"00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00","Signature": "_FVH","FileSystem GUID": "8C8CE578-8A3D-4F1C-9935-896185C32DD3","Full size": ["2A4000h", 2768896],"Header size": ["78h", 120],"Body size": ["2A3F88h", 2768776],"Revision": 2,"Attributes": "0003FEFFh","Erase polarity": 1,"Checksum": ["A3A2h", "valid"],"NumBlocks": ["2A4h", 676, "valid"],"Length": ["1000h", 4096, "valid"],"Extended header size": ["14h", 20],"Volume GUID": "A8169396-D0F7-49CB-890A-25E1A9767406", "context":["16个{类似logo.img的段}", {"name":"Volume free section", "type":"Free space"}]}}]}}}, {"name":"padding", "type":"padding"}]}
+{
+    "name": "UEFI image",
+    "type": "image",
+    "context": [
+        {
+            "name": "padding",
+            "type": "padding"
+        },
+        {
+            "name": "EfiFirmwareFileSyatem",
+            "type": "Volume",
+            "Fixed": "No",
+            "Base": "0x1000",
+            "Offset": "0x1000",
+            "ZeroVector": "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+            "Signature": "_FVH",
+            "FileSystem GUID": "8C8CE578-8A3D-4F1C-9935-896185C32DD3",
+            "Full size": [
+                "0x600000",
+                6291456
+            ],
+            "Header size": [
+                "0x48",
+                72
+            ],
+            "Body size": [
+                "0x5FFFB8",
+                6291384
+            ],
+            "Revision": 2,
+            "Attributes": "0x0003FEFF",
+            "Erase polarity": 1,
+            "Checksum": [
+                "0xE070",
+                "valid"
+            ],
+            "NumBlocks": [
+                "0x600",
+                1536,
+                "valid"
+            ],
+            "Length": [
+                "0x1000",
+                4096,
+                "valid"
+            ],
+            "context": {
+                "name": "072BE68A-6EC0-B209-9B83-276F017EBEAA",
+                "type": "File",
+                "Fixed": "No",
+                "Base": "0x1048",
+                "Offset": "0x48",
+                "File GUID": "072BE68A-6EC0-B209-9B83-276F017EBEAA",
+                "Type": "0x0B",
+                "Attributes": "0x00",
+                "Full size": [
+                    "0x3206B",
+                    204907
+                ],
+                "Header size": [
+                    "0x18",
+                    24
+                ],
+                "Body size": [
+                    "0x32053",
+                    204883
+                ],
+                "Tail size": [
+                    "0x0",
+                    0
+                ],
+                "State": "0xF8",
+                "Header checksum": [
+                    "0x41",
+                    "valid"
+                ],
+                "Data checksum": [
+                    "0xAA",
+                    "valid"
+                ],
+                "context": {
+                    "name": "LzmaCustomDecompressGuid",
+                    "type": "Section",
+                    "Fixed": "No",
+                    "Base": "0x1060",
+                    "Offset": "0x18",
+                    "Section GUID": "EE4E5898-3914-4259-9D6E-DC7BD79403CF",
+                    "Type": "0x02",
+                    "Full size": [
+                        "0x32053",
+                        204883
+                    ],
+                    "Header size": [
+                        "0x18",
+                        24
+                    ],
+                    "Body size": [
+                        "0x3203B",
+                        204859
+                    ],
+                    "Attributes": "0x0001",
+                    "Compression algorithm": "LZMA",
+                    "Decompressed size": [
+                        "0x2A4008",
+                        2768904
+                    ],
+                    "LZMA dictionary size": "0x1000000",
+                    "context": [
+                        {
+                            "name": "Raw section",
+                            "type": "Section"
+                        },
+                        {
+                            "name": "Volume image section",
+                            "type": "Section",
+                            "Fixed": "No",
+                            "Offset": "0x1C",
+                            "Type": "0x17",
+                            "Full size": [
+                                "0x2A4004",
+                                2768900
+                            ],
+                            "Header size": [
+                                "0x4",
+                                4
+                            ],
+                            "Body size": [
+                                "0x2A4000",
+                                2768896
+                            ],
+                            "context": {
+                                "name": "A8169396-D0F7-49CB-890A-25E1A9767406",
+                                "type": "Volume",
+                                "Fixed": "No",
+                                "Offset": "4h",
+                                "ZeroVector": "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+                                "Signature": "_FVH",
+                                "FileSystem GUID": "8C8CE578-8A3D-4F1C-9935-896185C32DD3",
+                                "Full size": [
+                                    "2A4000h",
+                                    2768896
+                                ],
+                                "Header size": [
+                                    "78h",
+                                    120
+                                ],
+                                "Body size": [
+                                    "2A3F88h",
+                                    2768776
+                                ],
+                                "Revision": 2,
+                                "Attributes": "0003FEFFh",
+                                "Erase polarity": 1,
+                                "Checksum": [
+                                    "A3A2h",
+                                    "valid"
+                                ],
+                                "NumBlocks": [
+                                    "2A4h",
+                                    676,
+                                    "valid"
+                                ],
+                                "Length": [
+                                    "1000h",
+                                    4096,
+                                    "valid"
+                                ],
+                                "Extended header size": [
+                                    "14h",
+                                    20
+                                ],
+                                "Volume GUID": "A8169396-D0F7-49CB-890A-25E1A9767406",
+                                "context": [
+                                    "16个{类似logo.img的段}",
+                                    {
+                                        "name": "Volume free section",
+                                        "type": "Free space"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "padding",
+            "type": "padding"
+        }
+    ]
+}
