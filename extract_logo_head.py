@@ -1,7 +1,0 @@
-fd = open('logo.img', 'rb')
-fd.seek(0)
-head = fd.read(0x501c)
-feadfd = open('logo-head.img', 'wb')
-feadfd.write(head)
-fd.close()
-feadfd.close()

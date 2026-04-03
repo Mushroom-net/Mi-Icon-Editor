@@ -51,4 +51,4 @@ def extract_gz_heuristic(image_file, gz_offset, output_file=None):
     
     print("未能找到完整的GZ文件")
     return False
-extract_gz_heuristic('logo.img', 0x501C)
+extract_gz_heuristic('logo.img', 0x1000)

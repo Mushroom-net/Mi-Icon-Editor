@@ -1,0 +1,60 @@
+        Type         |        Subtype        |   Base   |   Size   |  CRC32   |   Name 
+ Image               | UEFI                  | 00000000 | 03000000 | 1C9B3440 |  UEFI image
+ Padding             | Non-empty             | 00000000 | 00001000 | D2E321E5 | - Padding
+ Volume              | FFSv2                 | 00001000 | 00600000 | 2A67920B | - 8C8CE578-8A3D-4F1C-9935-896185C32DD3
+ File                | Volume image          | 00001048 | 00025328 | 2E0F2C5D | -- 072BE68A-6EC0-B209-9B83-276F017EBEAA
+ Section             | GUID defined          | 00001060 | 00025310 | 5FDF5DA2 | --- EE4E5898-3914-4259-9D6E-DC7BD79403CF
+ Section             | Raw                   |   N/A    | 00000004 | CA4DE08B | ---- Raw section
+ Section             | Volume image          |   N/A    | 0029A004 | 148E528A | ---- Volume image section
+ Volume              | FFSv2                 |   N/A    | 0029A000 | B8113FB2 | ----- A8169396-D0F7-49CB-890A-25E1A9767406
+ File                | Freeform              |   N/A    | 00010020 | 7E5E9259 | ------ 3E5584ED-05D4-4267-9048-0D47F76F4248 | battery_symbol_Soc10.bmp
+ Section             | UI                    |   N/A    | 00000036 | 8EE24F0A | ------- UI section
+ Section             | Raw                   |   N/A    | 0000FFD0 | 04589DC6 | ------- Raw section
+ File                | Freeform              |   N/A    | 0001577C | 3E6548A3 | ------ 4753E815-DDD8-402D-BF69-9B8C4EB7573E | battery_symbol_NoBattery.bmp
+ Section             | UI                    |   N/A    | 0000003E | 1F6C60FD | ------- UI section
+ Section             | Raw                   |   N/A    | 00015724 | F2440C44 | ------- Raw section
+ File                | Freeform              |   N/A    | 00014144 | 69ECDB51 | ------ 03DED53E-BECD-428F-9F79-5ABA64C58445 | battery_symbol_Nocharger.bmp
+ Section             | UI                    |   N/A    | 0000003E | FE89691E | ------- UI section
+ Section             | Raw                   |   N/A    | 000140EC | 56127C76 | ------- Raw section
+ File                | Freeform              |   N/A    | 000517FC | D61F2227 | ------ 8B86CD38-C772-4FCF-85AA-345B2B3C1AB4 | battery_symbol_LowBatteryCharging.bmp
+ Section             | UI                    |   N/A    | 00000050 | 7C6F441A | ------- UI section
+ Section             | Raw                   |   N/A    | 00051794 | 8C897A4F | ------- Raw section
+ File                | Freeform              |   N/A    | 0002DD7E | DEA44A1E | ------ D2FD3C9A-89BF-ACDD-75F3-2E9D6F18D8FC | battery_symbol_LowBatteryCharging_1080P.bmp
+ Section             | UI                    |   N/A    | 0000005C | 3A7A36B0 | ------- UI section
+ Section             | Raw                   |   N/A    | 0002DD0A | 712C4342 | ------- Raw section
+ File                | Freeform              |   N/A    | 0002DC2A | 9DEFD416 | ------ 493606C5-A79B-49B2-89C2-0D51B93D2AED | battery_symbol_LowBatteryCharging_1080P_H.bmp
+ Section             | UI                    |   N/A    | 00000060 | E6237C4D | ------- UI section
+ Section             | Raw                   |   N/A    | 0002DBB2 | DE45F843 | ------- Raw section
+ File                | Freeform              |   N/A    | 0003AD2E | AB7965EB | ------ F460016D-0C42-4C9E-97AF-04A8105B3F22 | battery_symbol_LowBatteryCharging_1220P.bmp
+ Section             | UI                    |   N/A    | 0000005C | CB1DE71F | ------- UI section
+ Section             | Raw                   |   N/A    | 0003ACBA | 26E4AA7D | ------- Raw section
+ File                | Freeform              |   N/A    | 000517EC | C9127C86 | ------ 3FD97907-93F1-4349-AF3C-3B68B0A5E626 | battery_symbol_LowBattery.bmp
+ Section             | UI                    |   N/A    | 00000040 | 761BBC5C | ------- UI section
+ Section             | Raw                   |   N/A    | 00051794 | 38267114 | ------- Raw section
+ File                | Freeform              |   N/A    | 0002DC1A | 05CB7EEA | ------ 75644C3E-8D3F-4755-92B0-6F9160C003B7 | battery_symbol_LowBattery_1080P_H.bmp
+ Section             | UI                    |   N/A    | 00000050 | B07CF915 | ------- UI section
+ Section             | Raw                   |   N/A    | 0002DBB2 | B767072E | ------- Raw section
+ File                | Freeform              |   N/A    | 0002DD6E | BA8E2913 | ------ 31C4535A-9EE1-7F06-0EB4-A859AAF5561F | battery_symbol_LowBattery_1080P.bmp
+ Section             | UI                    |   N/A    | 0000004C | 81BBCAF4 | ------- UI section
+ Section             | Raw                   |   N/A    | 0002DD0A | 2F340BC2 | ------- Raw section
+ File                | Freeform              |   N/A    | 0003AD1E | 91494B23 | ------ 2A4A95C4-520F-4123-B0AE-CEBE97A8DC67 | battery_symbol_LowBattery_1220P.bmp
+ Section             | UI                    |   N/A    | 0000004C | 70DC1B5B | ------- UI section
+ Section             | Raw                   |   N/A    | 0003ACBA | 5800101C | ------- Raw section
+ File                | Freeform              |   N/A    | 00015774 | 0D0E9B75 | ------ E2EA5A4F-98BD-4203-AB49-399505DDFB7D | tsens_thermal_symbol.bmp
+ Section             | UI                    |   N/A    | 00000036 | D5B14D41 | ------- UI section
+ Section             | Raw                   |   N/A    | 00015724 | D7F9A215 | ------- Raw section
+ File                | Freeform              |   N/A    | 0001577C | 5930A355 | ------ C72FB1A9-5527-4E13-BAC4-F671D0330145 | tsens_thermal_err_symbol.bmp
+ Section             | UI                    |   N/A    | 0000003E | CC179E97 | ------- UI section
+ Section             | Raw                   |   N/A    | 00015724 | 5509371B | ------- Raw section
+ File                | Freeform              |   N/A    | 00014172 | C19497F7 | ------ B0F8D1BE-5353-4812-B1F6-07E7768204CC | battery_symbol_DebugBoot.bmp
+ Section             | UI                    |   N/A    | 0000003E | D3E97A70 | ------- UI section
+ Section             | Raw                   |   N/A    | 0001411A | B4E9638B | ------- Raw section
+ File                | Freeform              |   N/A    | 000134CA | 96BADFC5 | ------ F9E8F683-E065-4E09-B4F9-0230D7CECD08 | battery_symbol_DebugStay.bmp
+ Section             | UI                    |   N/A    | 0000003E | FBD0D1C4 | ------- UI section
+ Section             | Raw                   |   N/A    | 00013472 | 00FB4CA0 | ------- Raw section
+ File                | Freeform              |   N/A    | 0003E034 | C51B6F21 | ------ AAC5F670-E475-4488-AB94-4210CBC8B267 | logo.img
+ Section             | UI                    |   N/A    | 00000016 | 2D03C12B | ------- UI section
+ Section             | Raw                   |   N/A    | 0003E004 | FD51D993 | ------- Raw section
+ Free space          |                       |   N/A    | 000003A8 | 32CF884B | ------ Volume free space
+ Free space          |                       | 00026370 | 005DAC90 | C6E29EF5 | -- Volume free space
+ Padding             | Non-empty             | 00601000 | 029FF000 | B5E4CF60 | - Padding
