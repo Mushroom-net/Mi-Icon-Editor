@@ -1,6 +1,5 @@
 import io
 import lzma
-import uefi_firmware
 import uuid
 
 offset = 0x501C
@@ -43,7 +42,7 @@ class ELF32_HEADER:
             2: '可执行文件',
             3: '共享目标文件',
             4: '核心转储文件'
-        }[int.from_bytes(self.Type, self.Format_Str)]
+        }.get(int.from_bytes(self.Type, self.Format_Str), '未知')
 
 class PRGM_HEAD_TABLE_ELMT:
 
@@ -78,8 +77,7 @@ class PRGM_HEAD_TABLE_ELMT:
         return False
 
     def get_type(self, byteorder:str):
-        try :
-            return {
+        return {
             0: '空',
             1: '可加载',
             2: '动态链接',
@@ -90,9 +88,7 @@ class PRGM_HEAD_TABLE_ELMT:
             7: '线程局部存储',
             int.from_bytes(b'\x64\x74\xE5\x51'): 'GNU扩展栈权限',
             int.from_bytes(b'\x64\x74\xE5\x52') : 'GNU扩展只读重定位'
-        }[int.from_bytes(self.Type, byteorder)]
-        except KeyError:
-            return '未知'
+        }.get(int.from_bytes(self.Type, byteorder), '未知')
 
 class EFI_FIRMWARE_VOLUME_HEADER:
 
@@ -163,7 +159,7 @@ class EFI_FFS_FILE_HEADER:
         return False
 
     def get_type(self) -> str:
-            return {
+        return {
             0x00: 'Null',
             0x01: 'Raw',
             0x02: 'Free Format',

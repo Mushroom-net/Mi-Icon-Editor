@@ -17,12 +17,12 @@
 HEADER = b'LOGO!!!!'
 BMP_HEADER = b'BM'
 
-from struct import *
+import struct
 import argparse, os
 
 def check_header(f):
     f.seek(0x4000)
-    (header,) = unpack("<8s", f.read(8))
+    (header,) = struct.unpack("<8s", f.read(8))
     if header != HEADER:
         print("wrong header", header)
         raise ValueError("Wrong Header")
@@ -34,7 +34,7 @@ def get_offsets(f):
 
     while True:
         last_offset = img_offset
-        (img_offset,) = unpack("<I", f.read(4))
+        (img_offset,) = struct.unpack("<I", f.read(4))
         if img_offset == 0:
             break
         else:
@@ -56,7 +56,7 @@ def extract(f):
     for img_offset in img_offsets:
         img_cnt += 1
         f.seek(img_offset)
-        (header, size) = unpack("<2sI", f.read(6))
+        (header, size) = struct.unpack("<2sI", f.read(6))
         if header != BMP_HEADER:
             print('corrupt bmp header skipping')
             continue
@@ -76,7 +76,7 @@ def edit(orig_imgs, new_imgs):
     img_cnt = 0
     lens = []
     for img_offset in img_offsets:
-        (header, size) = unpack("<2sI", binary[img_offset:img_offset+6])
+        (header, size) = struct.unpack("<2sI", binary[img_offset:img_offset+6])
         if header != BMP_HEADER:
             print('corrupt bmp header skipping')
             continue
@@ -84,7 +84,7 @@ def edit(orig_imgs, new_imgs):
         if len(new_imgs[img_cnt])+img_offset >= next_img:
             print(next_img, len(new_imgs[img_cnt]), img_offset)
             raise ValueError("Image too big; data overlaps with next image")
-        (header, size) = unpack("<2sI", new_imgs[img_cnt][:6])
+        (header, size) = struct.unpack("<2sI", new_imgs[img_cnt][:6])
         if header != BMP_HEADER:
             raise ValueError('cannot add corrupt bmp header')
         if size != len(new_imgs[img_cnt]):
