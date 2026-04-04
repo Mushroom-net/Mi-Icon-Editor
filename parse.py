@@ -1,6 +1,5 @@
 import io
 import lzma
-import uefi_firmware
 import uuid
 
 offset = 0x501C
