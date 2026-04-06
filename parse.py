@@ -319,6 +319,7 @@ def parse_sections(align: int, fd: io.BufferedReader, full_size: int, header_pos
             fd.seek(pos)
             common_head = EFI_SECTION_EXT_HEADER(fd.read(0x08))
         print(ident + '节类型:', common_head.get_type())
+        print(ident + '节总长度: 0x{:X}'.format(int.from_bytes(common_head.Size, 'little')))
         match common_head.Type:
             case 0x02:
                 fd.seek(pos)
@@ -334,11 +335,10 @@ def parse_sections(align: int, fd: io.BufferedReader, full_size: int, header_pos
                 pos += (guid_def_sec_header.Header_Size + align - 1) & ~(align - 1)
                 if guid_def_sec_header.require_process():
                     print(ident + '此节内容需要处理, 以下为处理后的内容, 偏移从0开始, 上述偏移失效')
-                    ident = ''
                     context: bytes = guid_def_sec_header.process(fd.read(int.from_bytes(guid_def_sec_header.Size, 'little') - guid_def_sec_header.Header_Size))
                     print(ident + '处理后内容长度: 0x{:X}'.format(len(context)))
                     dump(context, 'lzma.bin')
-                    parse_sections(align, io.BytesIO(context), len(context), 0, ident)
+                    parse_sections(align, io.BytesIO(context), len(context), 0, '')
                 else:
                     parse_sections(align, fd, int.from_bytes(guid_def_sec_header.Size, 'little') - guid_def_sec_header.Header_Size, 0, ident)
                 pos += int.from_bytes(guid_def_sec_header.Size, 'little') - guid_def_sec_header.Header_Size
@@ -363,7 +363,7 @@ def parse_sections(align: int, fd: io.BufferedReader, full_size: int, header_pos
             case _:
                 print(ident + '跳过未知数据')
                 print(ident + '当前位置: 0x{:X}'.format(pos))
-                pos += (int.from_bytes(common_head.Size, 'little') + align - 1) & ~(align - 1)
+                pos += 1
         ident = ident[:-1]
 
 def parse_ffs(align: int, fd: io.BufferedReader, full_size: int, header_pos: int, ident: str): # 上层只负责获取长度及起始, 嵌套需自行处理
