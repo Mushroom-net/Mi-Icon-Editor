@@ -370,6 +370,8 @@ def parse_ffs(align: int, fd: io.BufferedReader, full_size: int, header_pos: int
     pos = header_pos
     while pos + 0x18 < header_pos + full_size:
         print(ident + 'FFS头信息:')
+        print(ident + "full_size:0x{:X}".format(full_size))
+        print(ident + "header_pos:0x{:X}".format(header_pos))
         ident += '\t'
         fd.seek(pos)
         ffs_head = EFI_FFS_FILE_HEADER(fd.read(0x18))
@@ -410,10 +412,8 @@ def parse_ffs(align: int, fd: io.BufferedReader, full_size: int, header_pos: int
                     print(ident + '跳过未知数据')
                     print(ident + '当前位置: 0x{:X}'.format(pos))
                     pos += (int.from_bytes(ffs_head.Size, 'little') + align - 1) & ~(align - 1)
-        elif pos % align == 0:
-            pos += align
         else:
-            pos = (pos + align - 1) & ~(align - 1)
+            pos += 1
         ident = ident[:-1]
 
 def parse_firmware_volume(fd: io.BufferedReader, header_pos: int, ident: str): # 上层只负责获取起始, 头已定义长度, 此结构不会自嵌套
@@ -448,7 +448,7 @@ def parse_firmware_volume(fd: io.BufferedReader, header_pos: int, ident: str): #
             if fv_header.get_alignment() > 1:
                 ffs_rel_start = (ffs_rel_start + fv_header.get_alignment() - 1) & ~(fv_header.get_alignment() - 1)
             ffs_abs_start = header_pos + ffs_rel_start
-            ffs_context_length = header_pos + int.from_bytes(fv_header.File_Volume_Length, 'little') - int.from_bytes(fv_header.Header_Length, 'little')
+            ffs_context_length = header_pos + int.from_bytes(fv_header.File_Volume_Length, 'little') - int.from_bytes(fv_header.Header_Length, 'little') - ffs_abs_start
             # 解析 FFS 文件
             parse_ffs(fv_header.get_alignment(), fd, ffs_context_length, ffs_abs_start, ident)
         else:
