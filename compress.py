@@ -1,3 +1,4 @@
+# come from 
 #
 # Compressed logo.img generator for Xiaomi Pad 5 (nabu)
 #
@@ -21,7 +22,7 @@ input_file = "logo" # Do not change!
 
 # You may change these if you wish
 output_file = "logo_generated.img"
-logo_files = ["logo_1.bmp", "logo_2.bmp", "logo_3.bmp", "logo_4.bmp"]
+logo_files = ["img.bmp", "logo_2.bmp", "logo_3.bmp", "logo_4.bmp"]
 
 # Get size of file stream
 def GetSize(f):
@@ -35,7 +36,7 @@ def GetSize(f):
 # - Logo 1 is displayed during normal startup (for a few seconds if bootloader is unlocked)
 # - Logo 2 is displayed when the device is in fastboot mode (adb reboot bootloader)
 # - Logo 3 is displayed during startup when the bootloader detects it has been unlocked
-# - Logo 4 is displayed when secure boot fails (i.e. device is bricked)
+# - Logo 4 is displayed when secure boot fails (i.e. device is been bricked)
 
 with open(input_file, "wb") as combined_logo, open(logo_files[0], "rb") as startup_logo, open(logo_files[1], "rb") as fastboot_logo, open(logo_files[2], "rb") as unlocked_logo, open(logo_files[3], "rb") as bricked_logo:
     combined_logo.write(startup_logo.read())

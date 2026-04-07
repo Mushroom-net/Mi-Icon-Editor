@@ -4,7 +4,7 @@ import uuid
 
 offset = 0x501C
 
-file_name = 'img/imagefv_b.img'
+file_name = 'secdata.img'#'img/imagefv_b.img'
 fd = open(file_name, 'rb')
 fd.seek(0)
 
@@ -366,7 +366,7 @@ def parse_sections(align: int, fd: io.BufferedReader, full_size: int, header_pos
                 pos += (int.from_bytes(common_head.Size, 'little') + align - 1) & ~(align - 1)
             case 0x19:
                 print(ident + '保存RAW数据')
-                dump(fd.read(int.from_bytes(common_head.Size, 'little')), 'img/RAW_Sec_Data@0x{:X}.bin'.format(pos))
+                dump(fd.read(int.from_bytes(common_head.Size, 'little') - len(common_head)), 'img/RAW_Sec_Data@0x{:X}.bin'.format(pos))
                 pos += int.from_bytes(common_head.Size, 'little')
             case _:
                 print(ident + '跳过未知数据')

@@ -1,10 +1,10 @@
 from PIL import Image
 import gzip
-width, height = 1080, 2400
+"""width, height = 1080, 2400
 img = Image.new('RGB', (width, height), color=(63, 168, 255))
 dpi = 73
 img.info['dpi'] = (dpi, dpi)
-img.save('img.bmp')
+img.save('img.bmp')"""
 
 def compress_bmp_gzip_compress(input_bmp_path, output_gz_path):
     """
@@ -25,5 +25,7 @@ def compress_bmp_gzip_compress(input_bmp_path, output_gz_path):
         f_out.write(compressed_data)
 
 # 使用示例
-compress_bmp_gzip_compress('img.bmp', 'compressed_output.gz')
+f = open("temp.gz", 'rb').read()
+print(f[:0x20])
+gzip.decompress(f)
 #print('a' + '\t'[:-1] + 'b')
