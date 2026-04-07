@@ -365,7 +365,8 @@ def parse_sections(align: int, fd: io.BufferedReader, full_size: int, header_pos
                 parse_firmware_volume(fd, pos + common_head.Header_Size, ident)
                 pos += (int.from_bytes(common_head.Size, 'little') + align - 1) & ~(align - 1)
             case 0x19:
-                print(ident + '跳过此节')
+                print(ident + '保存RAW数据')
+                dump(fd.read(int.from_bytes(common_head.Size, 'little')), 'img/RAW_Sec_Data@0x{:X}.bin'.format(pos))
                 pos += int.from_bytes(common_head.Size, 'little')
             case _:
                 print(ident + '跳过未知数据')
@@ -378,8 +379,6 @@ def parse_ffs_files(align: int, fd: io.BufferedReader, full_size: int, header_po
     pos = header_pos
     while pos + 0x18 < header_pos + full_size:
         print(ident + 'Firmware File System头信息:')
-        print(ident + "full_size:0x{:X}".format(full_size))
-        print(ident + "header_pos:0x{:X}".format(header_pos))
         ident += '\t'
         fd.seek(pos)
         ffs_file_header = EFI_FIRMWARE_FILE_SYSTEM_FILE_HEADER(fd.read(0x18))
