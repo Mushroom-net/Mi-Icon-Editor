@@ -20,11 +20,14 @@ BMP_HEADER = b'BM'
 import struct
 import argparse, os
 
-class XIAOMI_LOGO_IMAGE_HEADER:
+class MI_LOGO_IMAGE_HEADER:
     
     def __init__(self, data: bytes):
-        
-        self.Header = data[:8]
+        self.Std_H = b'LOGO!!!!'
+        self.Magic = data[:0x08]
+    
+    def verify(self):
+        return self.Magic == self.Std_H
 
 def check_header(f):
     f.seek(0x4000)

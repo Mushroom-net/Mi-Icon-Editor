@@ -26,11 +26,3 @@ class BITMAP_INFO_HEADER:
         self.Clr_Used = data[0x20:0x24]
         self.Clr_Important = data[0x24:0x28]
     
-class MI_LOGO_IMAGE_HEADER:
-    
-    def __init__(self, data: bytes):
-        self.Std_H = b'LOGO!!!!'
-        self.Magic = data[:0x08]
-    
-    def verify(self):
-        return self.Magic == self.Std_H
