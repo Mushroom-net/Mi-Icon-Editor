@@ -131,7 +131,7 @@ class EFI_FIRMWARE_VOLUME_EXT_HEADER(EFI_FIRMWARE_VOLUME_HEADER):
             self.BlockMap.append((num_blocks, block_len))
             offset += 8
 
-class EFI_FFS_FILE_HEADER:
+class EFI_FIRMWARE_FILE_SYSTEM_FILE_HEADER:
 
     def __init__(self, data: bytes):
         self.Data = data
@@ -177,7 +177,7 @@ class EFI_FFS_FILE_HEADER:
             0x0E: 'MM Standalone',
             0x0F: 'MM Standalone Core',
             0xF0: 'Padding'
-        }.get(self.Type, 'OEM 定义' if 0xC0 <= self.Type <=0xDF else '调试定义'if 0xE0 <= self.Type <= 0xEF else 'FFS 内部保留' if 0xF1 <= self.Type <= 0xFF else '未知')
+        }.get(self.Type, 'OEM 定义' if 0xC0 <= self.Type <=0xDF else '调试定义'if 0xE0 <= self.Type <= 0xEF else 'Firmware File System 内部保留' if 0xF1 <= self.Type <= 0xFF else '未知')
 
     def gen_check_sum(self):
         pass
@@ -198,6 +198,9 @@ class EFI_SECTION_HEADER:
         self.Size = data[0x0:0x03]
         self.Type = data[0x03]
         self.Header_Size = 0x04
+    
+    def __len__(self):
+        return 0x04
     
     def get_type(self) -> str:
         return {
@@ -225,6 +228,9 @@ class EFI_SECTION_EXT_HEADER:
         self.Type = data[0x03]
         self.Size = data[0x04:0x08]
         self.Header_Size = 0x08
+    
+    def __len__(self):
+        return 0x08
     
     def get_type(self) -> str:
         return {
@@ -319,6 +325,7 @@ def parse_sections(align: int, fd: io.BufferedReader, full_size: int, header_pos
             fd.seek(pos)
             common_head = EFI_SECTION_EXT_HEADER(fd.read(0x08))
         print(ident + '节类型:', common_head.get_type())
+        print(ident + '节头起始位置: 0x{:X}'.format(pos))
         print(ident + '节总长度: 0x{:X}'.format(int.from_bytes(common_head.Size, 'little')))
         match common_head.Type:
             case 0x02:
@@ -331,7 +338,7 @@ def parse_sections(align: int, fd: io.BufferedReader, full_size: int, header_pos
                 print(ident + '节GUID:', bytes2guid(guid_def_sec_header.GUID))
                 print(ident + 'GUID版本:', guid.version)
                 print(ident + 'GUID变体:', guid.variant)
-                print(ident + '内容起始地址: 0x{:X}'.format(int.from_bytes(guid_def_sec_header.Data_Offset, 'little') + pos))
+                print(ident + '节内容起始地址: 0x{:X}'.format(int.from_bytes(guid_def_sec_header.Data_Offset, 'little') + pos))
                 pos += (guid_def_sec_header.Header_Size + align - 1) & ~(align - 1)
                 if guid_def_sec_header.require_process():
                     print(ident + '此节内容需要处理, 以下为处理后的内容, 偏移从0开始, 上述偏移失效')
@@ -339,6 +346,7 @@ def parse_sections(align: int, fd: io.BufferedReader, full_size: int, header_pos
                     print(ident + '处理后内容长度: 0x{:X}'.format(len(context)))
                     dump(context, 'lzma.bin')
                     parse_sections(align, io.BytesIO(context), len(context), 0, '')
+                    print('处理结束')
                 else:
                     parse_sections(align, fd, int.from_bytes(guid_def_sec_header.Size, 'little') - guid_def_sec_header.Header_Size, 0, ident)
                 pos += int.from_bytes(guid_def_sec_header.Size, 'little') - guid_def_sec_header.Header_Size
@@ -348,7 +356,7 @@ def parse_sections(align: int, fd: io.BufferedReader, full_size: int, header_pos
                 if int.from_bytes(ui_sec_header.Size, 'little') == 0xFFFFFF:
                     fd.seek(pos)
                     ui_sec_header = EFI_SECTION_USER_INTERFACE_EXT_HEADER(fd.read(0x0C))
-                print(ident + '内容起始地址: 0x{:X}'.format(pos))
+                print(ident + '节内容起始地址: 0x{:X}'.format(pos))
                 print(ident + '节内容长度: 0x{:X}'.format(int.from_bytes(ui_sec_header.Size, 'little') - ui_sec_header.Header_Size))
                 fd.seek(pos + ui_sec_header.Header_Size)
                 print(ident + '节内容（字符串）:', fd.read(int.from_bytes(ui_sec_header.Size, 'little') - ui_sec_header.Header_Size)[:-2].decode('utf-16le'))
@@ -358,62 +366,66 @@ def parse_sections(align: int, fd: io.BufferedReader, full_size: int, header_pos
                 pos += (int.from_bytes(common_head.Size, 'little') + align - 1) & ~(align - 1)
             case 0x19:
                 print(ident + '跳过此节')
-                print(ident + '当前位置: 0x{:X}'.format(pos))
                 pos += int.from_bytes(common_head.Size, 'little')
             case _:
                 print(ident + '跳过未知数据')
-                print(ident + '当前位置: 0x{:X}'.format(pos))
-                pos += 1
+                if pos + int.from_bytes(common_head.Size, 'little') > full_size or int.from_bytes(common_head.Size, 'little') == 0:
+                    break
+                pos += int.from_bytes(common_head.Size, 'little')
         ident = ident[:-1]
 
-def parse_ffs(align: int, fd: io.BufferedReader, full_size: int, header_pos: int, ident: str): # 上层只负责获取长度及起始, 嵌套需自行处理
+def parse_ffs_files(align: int, fd: io.BufferedReader, full_size: int, header_pos: int, ident: str): # 上层只负责获取长度及起始, 嵌套需自行处理
     pos = header_pos
     while pos + 0x18 < header_pos + full_size:
-        print(ident + 'FFS头信息:')
+        print(ident + 'Firmware File System头信息:')
         print(ident + "full_size:0x{:X}".format(full_size))
         print(ident + "header_pos:0x{:X}".format(header_pos))
         ident += '\t'
         fd.seek(pos)
-        ffs_head = EFI_FFS_FILE_HEADER(fd.read(0x18))
-        print(ident + 'FFS头起始地址: 0x{:X}'.format(pos))
-        guid = uuid.UUID(bytes2guid(ffs_head.NameGUID))
-        print(ident + 'FFS GUID:', bytes2guid(ffs_head.NameGUID))
+        ffs_file_header = EFI_FIRMWARE_FILE_SYSTEM_FILE_HEADER(fd.read(0x18))
+        print(ident + 'Firmware File System文件头起始地址: 0x{:X}'.format(pos))
+        guid = uuid.UUID(bytes2guid(ffs_file_header.NameGUID))
+        print(ident + 'Firmware File System文件头GUID:', bytes2guid(ffs_file_header.NameGUID))
         print(ident + 'GUID版本:', guid.version)
         print(ident + 'GUID变体:', guid.variant)
-        print(ident + 'FFS长度: 0x{:X}'.format(int.from_bytes(ffs_head.Size, 'little')))
-        print(ident + '类型:', ffs_head.get_type())
-        print(ident + 'FFS头校验' + ('通过' if ffs_head.verify() else '不通过'))
-        if ffs_head.verify():
-            if ffs_head.is_large_file():
+        print(ident + 'Firmware File System文件长度: 0x{:X}'.format(int.from_bytes(ffs_file_header.Size, 'little')))
+        print(ident + 'Firmware File System文件类型:', ffs_file_header.get_type())
+        print(ident + 'Firmware File System文件头校验' + ('通过' if ffs_file_header.verify() else '不通过, 跳过内容解析'))
+        if ffs_file_header.verify():
+            if ffs_file_header.is_large_file():
                 fd.seek(pos)
-                ffs_head = EFI_FFS_FILE_HEADER(fd.read(0x20))
-            match ffs_head.Type:
+                ffs_file_header = EFI_FIRMWARE_FILE_SYSTEM_FILE_HEADER(fd.read(0x20))
+            match ffs_file_header.Type:
                 case 0x0:
+                    print(ident + '当前位置: 0x{:X}'.format(pos))
                     print(ident + '跳过泛型数据')
-                    print(ident + '当前位置: 0x{:X}'.format(pos))
-                    pos += (int.from_bytes(ffs_head.Size, 'little') + align - 1) & ~(align - 1)
+                    pos += (int.from_bytes(ffs_file_header.Size, 'little') + align - 1) & ~(align - 1)
                 case 0x01:
-                    print(ident + '保存RAW数据')
-                    dump(fd.read(int.from_bytes(ffs_head.Size, 'little') - len(ffs_head)), bytes2guid(ffs_head.NameGUID))
                     print(ident + '当前位置: 0x{:X}'.format(pos))
-                    pos += (int.from_bytes(ffs_head.Size, 'little') + align - 1) & ~(align - 1)
+                    print(ident + '保存RAW数据')
+                    dump(fd.read(int.from_bytes(ffs_file_header.Size, 'little') - len(ffs_file_header)), bytes2guid(ffs_file_header.NameGUID))
+                    pos += (int.from_bytes(ffs_file_header.Size, 'little') + align - 1) & ~(align - 1)
                 case 0x02:
-                    parse_sections(align, fd, int.from_bytes(ffs_head.Size, 'little') - len(ffs_head), pos + len(ffs_head), ident)
-                    pos += (int.from_bytes(ffs_head.Size, 'little') + align - 1) & ~(align - 1)
+                    parse_sections(align, fd, int.from_bytes(ffs_file_header.Size, 'little') - len(ffs_file_header), pos + len(ffs_file_header), ident)
+                    pos += (int.from_bytes(ffs_file_header.Size, 'little') + align - 1) & ~(align - 1)
                 case 0x0B:
                     print(ident + '当前位置: 0x{:X}'.format(fd.tell()))
-                    parse_sections(align, fd,int.from_bytes(ffs_head.Size, 'little') , pos + len(ffs_head), ident)
-                    pos += (int.from_bytes(ffs_head.Size, 'little') + align - 1) & ~(align - 1)
+                    parse_sections(align, fd,int.from_bytes(ffs_file_header.Size, 'little') , pos + len(ffs_file_header), ident)
+                    pos += (int.from_bytes(ffs_file_header.Size, 'little') + align - 1) & ~(align - 1)
                 case 0xF0:
+                    print(ident + '当前位置: 0x{:X}'.format(pos))
                     print(ident + '跳过空数据')
-                    print(ident + '当前位置: 0x{:X}'.format(pos))
-                    pos += (int.from_bytes(ffs_head.Size, 'little') + align - 1) & ~(align - 1)
+                    pos += (int.from_bytes(ffs_file_header.Size, 'little') + align - 1) & ~(align - 1)
                 case _:
-                    print(ident + '跳过未知数据')
                     print(ident + '当前位置: 0x{:X}'.format(pos))
-                    pos += (int.from_bytes(ffs_head.Size, 'little') + align - 1) & ~(align - 1)
+                    print(ident + '跳过未知数据')
+                    if pos + int.from_bytes(ffs_file_header.Size, 'little') > full_size or int.from_bytes(ffs_file_header.Size, 'little') == 0:
+                        break
+                    pos += (int.from_bytes(ffs_file_header.Size, 'little') + align - 1) & ~(align - 1)
+        elif pos + int.from_bytes(ffs_file_header.Size, 'little') > full_size or int.from_bytes(ffs_file_header.Size, 'little') == 0:
+            break
         else:
-            pos += 1
+            pos += (int.from_bytes(ffs_file_header.Size, 'little') + align - 1) & ~(align - 1)
         ident = ident[:-1]
 
 def parse_firmware_volume(fd: io.BufferedReader, header_pos: int, ident: str): # 上层只负责获取起始, 头已定义长度, 此结构不会自嵌套
@@ -422,20 +434,19 @@ def parse_firmware_volume(fd: io.BufferedReader, header_pos: int, ident: str): #
     print(ident + '固件卷详细信息:')
     guid = uuid.UUID(bytes2guid(fv_header.File_System_GUID))
     ident += '\t'
-    print(ident + '固件卷头校验' + ('通过' if fv_header.verify() else '不通过'))
     print(ident + '头GUID:', bytes2guid(fv_header.File_System_GUID))
     print(ident + 'GUID版本:', guid.version)
     print(ident + 'GUID变体:', guid.variant)
     print(ident + '固件卷总大小: 0x{:X}'.format(int.from_bytes(fv_header.File_Volume_Length, 'little')))
     print(ident + '头长度 (含块映射): 0x{:X}'.format(int.from_bytes(fv_header.Header_Length, 'little')))
     print(ident + '对齐要求: {} 字节'.format(fv_header.get_alignment()))
+    print(ident + '固件卷头校验' + ('通过' if fv_header.verify() else '不通过, 跳过内容解析'))
     if fv_header.verify: 
         if fv_header.Have_EXT_Header:
             fd.seek(header_pos)
             fv_header = EFI_FIRMWARE_VOLUME_EXT_HEADER(fd.read(int.from_bytes(fv_header.Extend_Header_Offset, 'little') + 0x14))
             fd.seek(header_pos)
-            fv_header = EFI_FIRMWARE_VOLUME_EXT_HEADER(fd.read(int.from_bytes(fv_header.Extend_Header_Offset, 'little') +
-                                                               int.from_bytes(fv_header.Extend_Header_Size, 'little')))
+            fv_header = EFI_FIRMWARE_VOLUME_EXT_HEADER(fd.read(int.from_bytes(fv_header.Extend_Header_Offset, 'little') + int.from_bytes(fv_header.Extend_Header_Size, 'little')))
             print(ident + '扩展头位于偏移量0x{:X}'.format(int.from_bytes(fv_header.Extend_Header_Offset, 'little')))
             print(ident + '扩展头大小: 0x{:X}'.format(int.from_bytes(fv_header.Extend_Header_Size, 'little')))
             print(ident + '固件卷名称GUID:', bytes2guid(fv_header.File_Volume_Name_GUID))
@@ -449,13 +460,12 @@ def parse_firmware_volume(fd: io.BufferedReader, header_pos: int, ident: str): #
                 ffs_rel_start = (ffs_rel_start + fv_header.get_alignment() - 1) & ~(fv_header.get_alignment() - 1)
             ffs_abs_start = header_pos + ffs_rel_start
             ffs_context_length = header_pos + int.from_bytes(fv_header.File_Volume_Length, 'little') - int.from_bytes(fv_header.Header_Length, 'little') - ffs_abs_start
-            # 解析 FFS 文件
-            parse_ffs(fv_header.get_alignment(), fd, ffs_context_length, ffs_abs_start, ident)
+            # 解析 Firmware File System 文件
+            parse_ffs_files(fv_header.get_alignment(), fd, ffs_context_length, ffs_abs_start, ident)
         else:
             print(ident + '此段不含扩展头')
-            parse_ffs(fv_header.get_alignment(), fd, int.from_bytes(fv_header.File_Volume_Length, 'little') -
-                      int.from_bytes(fv_header.Header_Length, 'little'),
-                      header_pos + int.from_bytes(fv_header.Header_Length, 'little'), ident)
+            parse_ffs_files(fv_header.get_alignment(), fd, int.from_bytes(fv_header.File_Volume_Length, 'little') - int.from_bytes(fv_header.Header_Length, 'little'),
+                            header_pos + int.from_bytes(fv_header.Header_Length, 'little'), ident)
 
 elf32_header = ELF32_HEADER(fd.read(0x40))
 ident = ''

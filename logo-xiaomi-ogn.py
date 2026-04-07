@@ -20,12 +20,6 @@ BMP_HEADER = b'BM'
 import struct
 import argparse, os
 
-class XIAOMI_LOGO_IMAGE_HEADER:
-    
-    def __init__(self, data: bytes):
-        
-        self.Header = data[:8]
-
 def check_header(f):
     f.seek(0x4000)
     (header,) = struct.unpack("<8s", f.read(8))

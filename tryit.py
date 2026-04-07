@@ -26,3 +26,4 @@ def compress_bmp_gzip_compress(input_bmp_path, output_gz_path):
 
 # 使用示例
 compress_bmp_gzip_compress('img.bmp', 'compressed_output.gz')
+#print('a' + '\t'[:-1] + 'b')
