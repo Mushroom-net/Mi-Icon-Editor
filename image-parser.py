@@ -4,10 +4,6 @@ import uuid
 
 offset = 0x501C
 
-file_name = 'secdata.img'#'img/imagefv_b.img'
-fd = open(file_name, 'rb')
-fd.seek(0)
-
 class ELF32_HEADER:
     def __init__(self, data:bytes):
         self.Magic = data[0:0x04] # ELF magic
@@ -466,59 +462,65 @@ def parse_firmware_volume(fd: io.BufferedReader, header_pos: int, ident: str): #
             parse_ffs_files(fv_header.get_alignment(), fd, int.from_bytes(fv_header.File_Volume_Length, 'little') - int.from_bytes(fv_header.Header_Length, 'little'),
                             header_pos + int.from_bytes(fv_header.Header_Length, 'little'), ident)
 
-elf32_header = ELF32_HEADER(fd.read(0x40))
-ident = ''
-
-print(f'{ident}{file_name} 魔数:', str(elf32_header.Magic))
-print(f'{ident}{file_name} 格式:', elf32_header.Type_Str)
-print(f'{ident}{file_name} 存储方式:', elf32_header.Format_Str)
-print(f'{ident}{file_name} ELF版本:', elf32_header.ELF_Version)
-print(f'{ident}{file_name} ABI:', elf32_header.OS_ABI)
-print(f'{ident}{file_name} ABI版本:', elf32_header.ABI_Version)
-print(f'{ident}{file_name} 类型:', elf32_header.get_type())
-print('{0} 程序entry point: 0x{1:X}'.format(file_name, int.from_bytes(elf32_header.PRGM_Entry, elf32_header.Format_Str)))
-if int.from_bytes(elf32_header.PRGM_Header_ELMT_Num, elf32_header.Format_Str) != 0:
-    print('{0} 程序头表起始地址: 0x{1:X}'.format(file_name, int.from_bytes(elf32_header.PRGM_Header_Table_Offset, elf32_header.Format_Str)))
-    print(f'{ident}{file_name} 程序头表元素大小:', str(int.from_bytes(elf32_header.PRGM_Header_ELMT_Size, elf32_header.Format_Str)))
-    print(f'{ident}{file_name} 程序头表元素数量:', str(int.from_bytes(elf32_header.PRGM_Header_ELMT_Num, elf32_header.Format_Str)))
-else:
-    print(f'{ident}{file_name} 程序头表为空')
-if int.from_bytes(elf32_header.SEC_Header_ELMT_Num, elf32_header.Format_Str) != 0:
-    print(ident + '{0} 节头表起始地址: 0x{1:X}'.format(file_name, int.from_bytes(elf32_header.SEC_Header_Table_Offset, elf32_header.Format_Str)))
-    print(f'{ident}{file_name} 节头表元素数量:', str(int.from_bytes(elf32_header.SEC_Header_ELMT_Num, elf32_header.Format_Str)))
-    print(f'{ident}{file_name} 节头表元素大小:', str(int.from_bytes(elf32_header.SEC_Header_ELMT_Size, elf32_header.Format_Str)))
-    print(ident + '{0} 节头表字符串表索引: 0x{1:X}'.format(file_name, int.from_bytes(elf32_header.SEC_Header_String_Index, elf32_header.Format_Str)))
-else:
-    print(ident + f'{ident}{file_name} 节头表为空')
-
-if int.from_bytes(elf32_header.PRGM_Header_ELMT_Num, elf32_header.Format_Str) != 0:
-    fd.seek(int.from_bytes(elf32_header.PRGM_Header_Table_Offset, elf32_header.Format_Str))
-    print(ident + '开始读取程序头表数据...')
-    for i in range(int.from_bytes(elf32_header.PRGM_Header_ELMT_Num, elf32_header.Format_Str)):
-        pht_elmt_data = fd.read(int.from_bytes(elf32_header.PRGM_Header_ELMT_Size, elf32_header.Format_Str))
-        crnt_pos = fd.tell()
-        elmt = PRGM_HEAD_TABLE_ELMT(pht_elmt_data)
-        print(f'{ident}段{i}信息:')
-        ident += '\t'
-        print(ident + '状态:', elmt.get_permission(elf32_header.Format_Str))
-        print(ident + '段头起始地址: 0x{:X}'.format(elmt.get_offset(elf32_header.Format_Str)))
-        print(ident + '长度: 0x{:X}'.format(elmt.get_size(elf32_header.Format_Str)))
-        print(ident + '段类型:', elmt.get_type(elf32_header.Format_Str))
-        ident = ident[:-1]
-        if elmt.available(elf32_header.Format_Str):
+def main(file_name: str):
+    fd = open(file_name, 'rb')
+    fd.seek(0)
+    elf32_header = ELF32_HEADER(fd.read(0x40))
+    ident = ''
+    
+    print(f'{ident}{file_name} 魔数:', str(elf32_header.Magic))
+    print(f'{ident}{file_name} 格式:', elf32_header.Type_Str)
+    print(f'{ident}{file_name} 存储方式:', elf32_header.Format_Str)
+    print(f'{ident}{file_name} ELF版本:', elf32_header.ELF_Version)
+    print(f'{ident}{file_name} ABI:', elf32_header.OS_ABI)
+    print(f'{ident}{file_name} ABI版本:', elf32_header.ABI_Version)
+    print(f'{ident}{file_name} 类型:', elf32_header.get_type())
+    print('{0} 程序entry point: 0x{1:X}'.format(file_name, int.from_bytes(elf32_header.PRGM_Entry, elf32_header.Format_Str)))
+    if int.from_bytes(elf32_header.PRGM_Header_ELMT_Num, elf32_header.Format_Str) != 0:
+        print('{0} 程序头表起始地址: 0x{1:X}'.format(file_name, int.from_bytes(elf32_header.PRGM_Header_Table_Offset, elf32_header.Format_Str)))
+        print(f'{ident}{file_name} 程序头表元素大小:', str(int.from_bytes(elf32_header.PRGM_Header_ELMT_Size, elf32_header.Format_Str)))
+        print(f'{ident}{file_name} 程序头表元素数量:', str(int.from_bytes(elf32_header.PRGM_Header_ELMT_Num, elf32_header.Format_Str)))
+    else:
+        print(f'{ident}{file_name} 程序头表为空')
+    if int.from_bytes(elf32_header.SEC_Header_ELMT_Num, elf32_header.Format_Str) != 0:
+        print(ident + '{0} 节头表起始地址: 0x{1:X}'.format(file_name, int.from_bytes(elf32_header.SEC_Header_Table_Offset, elf32_header.Format_Str)))
+        print(f'{ident}{file_name} 节头表元素数量:', str(int.from_bytes(elf32_header.SEC_Header_ELMT_Num, elf32_header.Format_Str)))
+        print(f'{ident}{file_name} 节头表元素大小:', str(int.from_bytes(elf32_header.SEC_Header_ELMT_Size, elf32_header.Format_Str)))
+        print(ident + '{0} 节头表字符串表索引: 0x{1:X}'.format(file_name, int.from_bytes(elf32_header.SEC_Header_String_Index, elf32_header.Format_Str)))
+    else:
+        print(ident + f'{ident}{file_name} 节头表为空')
+    
+    if int.from_bytes(elf32_header.PRGM_Header_ELMT_Num, elf32_header.Format_Str) != 0:
+        fd.seek(int.from_bytes(elf32_header.PRGM_Header_Table_Offset, elf32_header.Format_Str))
+        print(ident + '开始读取程序头表数据...')
+        for i in range(int.from_bytes(elf32_header.PRGM_Header_ELMT_Num, elf32_header.Format_Str)):
+            pht_elmt_data = fd.read(int.from_bytes(elf32_header.PRGM_Header_ELMT_Size, elf32_header.Format_Str))
+            crnt_pos = fd.tell()
+            elmt = PRGM_HEAD_TABLE_ELMT(pht_elmt_data)
+            print(f'{ident}段{i}信息:')
             ident += '\t'
-            print(ident + '开始解析可用段数据')
-            parse_firmware_volume(fd, elmt.get_offset(elf32_header.Format_Str), ident)
+            print(ident + '状态:', elmt.get_permission(elf32_header.Format_Str))
+            print(ident + '段头起始地址: 0x{:X}'.format(elmt.get_offset(elf32_header.Format_Str)))
+            print(ident + '长度: 0x{:X}'.format(elmt.get_size(elf32_header.Format_Str)))
+            print(ident + '段类型:', elmt.get_type(elf32_header.Format_Str))
             ident = ident[:-1]
-        fd.seek(crnt_pos)
-        
-    '''
-    parser = uefi_firmware.AutoParser(ffs)
-    print('文件类型:', parser.type())
-    if parser.type() != 'unknown':
-        firmware = parser.parse()
-        #firmware.data
-        firmware.showinfo()
-    '''
+            if elmt.available(elf32_header.Format_Str):
+                ident += '\t'
+                print(ident + '开始解析可用段数据')
+                parse_firmware_volume(fd, elmt.get_offset(elf32_header.Format_Str), ident)
+                ident = ident[:-1]
+            fd.seek(crnt_pos)
+            
+        '''
+        parser = uefi_firmware.AutoParser(ffs)
+        print('文件类型:', parser.type())
+        if parser.type() != 'unknown':
+            firmware = parser.parse()
+            #firmware.data
+            firmware.showinfo()
+        '''
+    
+    fd.close()
 
-fd.close()
+if __name__ == '__main__':
+    main('img/imagefv_b.img')
